@@ -161,7 +161,7 @@ try:
             st.write(f"Fib Zone: {round(fib_618, 2)} to {round(fib_382, 2)}")
             st.write(f"Type of current_price_4h: {type(current_price_4h)}")
 
-
+st.write(f"Type of current_price_4h: {type(current_price_4h)}")
 
             
             in_wave_2 = (current_price_4h >= fib_618) and (current_price_4h <= fib_382)
