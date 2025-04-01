@@ -8,7 +8,7 @@ from datetime import datetime
 # -----------------------
 st.set_page_config(page_title="WTI 100-Pip Bullish Signal Dashboard", layout="centered")
 st.title("WTI 100-Pip Bullish Signal Dashboard")
-st.markdown("Directional Bias Checklist – Version 2.1")
+st.markdown("Directional Bias Checklist – 4H Version")
 
 # -----------------------
 # Get Live WTI Daily Data
@@ -92,7 +92,7 @@ st.write(f"Near Structure: **{structure_side}**")
 st.write(f"Score: {score3}/1")
 
 # -----------------------
-# 4–6. Bias Conditions (Manual)
+# 4–6. Bias Conditions (Manual Logic)
 # -----------------------
 st.subheader("4–6. Bias Conditions (Manual Logic)")
 
@@ -123,25 +123,25 @@ else:
     st.error("Low Bias – Avoid Entry or Wait")
 
 # -----------------------
-# 2H Wave Detection (Debug Mode)
+# 4H Wave Detection
 # -----------------------
-st.subheader("2H Wave Detection (Automated – Debug Mode)")
+st.subheader("4H Wave Detection (Automated)")
 
-wave_status = "Unavailable"
+wave_status_4h = "Unavailable"
 
 try:
-    data_2h = yf.download(tickers=symbol, period="60d", interval="4h", progress=False)
-    data_2h = data_2h[['High', 'Low', 'Close']].dropna().reset_index()
-    st.write(f"Fetched {len(data_2h)} candles from 2H feed.")
+    data_4h = yf.download(tickers=symbol, period="60d", interval="4h", progress=False)
+    data_4h = data_4h[['High', 'Low', 'Close']].dropna().reset_index()
+    st.write(f"Fetched {len(data_4h)} candles from 4H feed.")
 
-    if len(data_2h) < 10:
+    if len(data_4h) < 10:
         st.warning("Not enough candles for detection.")
     else:
         window = 6
-        data_2h['change'] = data_2h['Close'].diff()
-        data_2h['rolling_sum'] = data_2h['change'].rolling(window).sum()
+        data_4h['change'] = data_4h['Close'].diff()
+        data_4h['rolling_sum'] = data_4h['change'].rolling(window).sum()
 
-        impulse_idx = data_2h['rolling_sum'].idxmax()
+        impulse_idx = data_4h['rolling_sum'].idxmax()
         st.write(f"Impulse Index: {impulse_idx}")
 
         if impulse_idx < window:
@@ -151,35 +151,25 @@ try:
             impulse_end_idx = impulse_idx
             st.write(f"Impulse Leg: {impulse_start_idx} to {impulse_end_idx}")
 
-            wave1_low = data_2h.loc[impulse_start_idx, 'Low']
-            wave1_high = data_2h.loc[impulse_end_idx, 'High']
+            wave1_low = data_4h.loc[impulse_start_idx, 'Low']
+            wave1_high = data_4h.loc[impulse_end_idx, 'High']
 
             fib_382 = wave1_high - (wave1_high - wave1_low) * 0.382
             fib_618 = wave1_high - (wave1_high - wave1_low) * 0.618
 
-            current_price_2h = data_2h['Close'].iloc[-1]
+            current_price_4h = float(data_4h['Close'].iloc[-1])
             st.write(f"Fib Zone: {round(fib_618, 2)} to {round(fib_382, 2)}")
-            st.write(f"Current Price: {round(current_price_2h, 2)}")
+            st.write(f"Current Price: {round(current_price_4h, 2)}")
 
-            in_wave_2 = (current_price_2h >= fib_618) and (current_price_2h <= fib_382)
-            wave_status = "Likely Wave 2" if in_wave_2 else "Impulse Complete / Waiting"
-            st.write(f"Wave Status: {wave_status}")
+            in_wave_2 = (current_price_4h >= fib_618) and (current_price_4h <= fib_382)
+            wave_status_4h = "Likely Wave 2" if in_wave_2 else "Impulse Complete / Waiting"
+            st.write(f"Wave Status: {wave_status_4h}")
 
 except Exception as e:
     st.warning(f"Wave detection failed: {e}")
 
 # -----------------------
-# Wave Structure Overview
+# Final Structure Summary
 # -----------------------
 st.subheader("Wave Structure Overview")
-
-wave_4h = "Wave 3"
-wave_daily = "Wave 1"
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.metric(label="2H Chart", value=wave_status)
-with col2:
-    st.metric(label="4H Chart", value=wave_4h)
-with col3:
-    st.metric(label="Daily Chart", value=wave_daily)
+st.metric(label="4H Wave", value=wave_status_4h)
