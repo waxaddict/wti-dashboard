@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 from datetime import datetime
 
 # -----------------------
@@ -8,10 +7,10 @@ from datetime import datetime
 # -----------------------
 st.set_page_config(page_title="WTI 100-Pip Bullish Signal Dashboard", layout="centered")
 st.title("WTI 100-Pip Bullish Signal Dashboard")
-st.markdown("Full Bias Checklist – Version 1.0")
+st.markdown("Full Bias Checklist – Version 1.1")
 
 # -----------------------
-# Sample OHLC Data (Replace with live or uploaded data)
+# Sample OHLC Data (Last 2 Days)
 # -----------------------
 st.subheader("Sample OHLC Data (Last 2 Days)")
 
@@ -54,41 +53,40 @@ st.subheader("2. Prior Day’s Range")
 st.write(f"Range: {pd_range} | Score: {score2}/1")
 
 # -----------------------
-# 3. Price Near Breakout Structure (Manual)
+# 3–6. Manual Inputs with Tick/X
 # -----------------------
-score3 = st.radio("3. Price Near Key Structure (Prev High/Low or Breakout)?", ["Yes", "No"]) == "Yes"
-score3 = int(score3)
-st.write(f"Score: {score3}/1")
+st.subheader("3–6. Visual Bias Components")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    is_structure = st.checkbox("✅ Price Near Breakout Structure", value=False)
+    score3 = 1 if is_structure else 0
+    st.markdown(f"Score: {score3}/1")
+
+    is_fib = st.checkbox("✅ In 38.2–61.8% Fib Zone", value=False)
+    score5 = 1 if is_fib else 0
+    st.markdown(f"Score: {score5}/1")
+
+with col2:
+    is_ema = st.checkbox("✅ EMA Alignment Bullish (1H/4H/Daily)", value=False)
+    score4 = 1 if is_ema else 0
+    st.markdown(f"Score: {score4}/1")
+
+    is_wave = st.checkbox("✅ Bullish Elliott Wave Likely Forming", value=False)
+    score6 = 1 if is_wave else 0
+    st.markdown(f"Score: {score6}/1")
 
 # -----------------------
-# 4. EMA Trend Alignment (Manual)
-# -----------------------
-score4 = st.radio("4. EMA Alignment Bullish (1H / 4H / Daily)?", ["Yes", "No"]) == "Yes"
-score4 = int(score4)
-st.write(f"Score: {score4}/1")
-
-# -----------------------
-# 5. Fib Retracement Zone (Manual)
-# -----------------------
-score5 = st.radio("5. Is Price in 38.2–61.8% Fib Retracement Zone?", ["Yes", "No"]) == "Yes"
-score5 = int(score5)
-st.write(f"Score: {score5}/1")
-
-# -----------------------
-# 6. Elliott Wave Snapshot (Manual)
-# -----------------------
-score6 = st.radio("6. Is Bullish Wave Structure (Wave 3 or 5) Likely Forming?", ["Yes", "No"]) == "Yes"
-score6 = int(score6)
-st.write(f"Score: {score6}/1")
-
-# -----------------------
-# TOTAL BIAS SCORE
+# Total Bias Score
 # -----------------------
 total_score = score1 + score2 + score3 + score4 + score5 + score6
 st.subheader("Total Bias Score")
 st.metric(label="Bias Strength", value=f"{total_score}/6")
 
-# Optional Interpretation
+# -----------------------
+# Interpretation
+# -----------------------
 if total_score >= 5:
     st.success("High Bullish Bias – Look for Entry Setup")
 elif total_score >= 3:
