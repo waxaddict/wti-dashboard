@@ -63,8 +63,6 @@ def prior_day_range_score(df, threshold=0.80):
         return score, round(range_pips, 2)
     except Exception as e:
         return 0, 0
-    except:
-        return 0, 0
 
 score2, pd_range = prior_day_range_score(df)
 st.subheader("2. Prior Day’s Range")
