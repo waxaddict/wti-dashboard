@@ -161,7 +161,7 @@ try:
             st.write(f"Fib Zone: {round(fib_618, 2)} to {round(fib_382, 2)}")
             st.write(f"Current Price: {round(current_price_2h, 2)}")
 
-            in_wave_2 = fib_618 <= current_price_2h <= fib_382
+            in_wave_2 = (current_price_2h >= fib_618) and (current_price_2h <= fib_382)
             wave_status = "Likely Wave 2" if in_wave_2 else "Impulse Complete / Waiting"
             st.write(f"Wave Status: {wave_status}")
 
