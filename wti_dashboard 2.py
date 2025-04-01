@@ -123,45 +123,49 @@ else:
     st.error("Low Bias – Avoid Entry or Wait")
 
 # -----------------------
-# 2H Wave Detection (Auto)
+# 2H Wave Detection (Automated)
 # -----------------------
 st.subheader("2H Wave Detection (Automated)")
 
-wave_status = "Unavailable"  # Default fallback value
+wave_status = "Unavailable"
 
 try:
     data_2h = yf.download(tickers=symbol, period="21d", interval="2h", progress=False)
     data_2h = data_2h[['High', 'Low', 'Close']].dropna().reset_index()
 
-    if len(data_2h) < 7:
-        st.warning("Not enough 2H candles to detect Wave 2.")
+    if len(data_2h) < 10:
+        st.warning("Not enough 2H candles returned to detect Wave 2.")
     else:
         window = 6
         data_2h['change'] = data_2h['Close'].diff()
         data_2h['rolling_sum'] = data_2h['change'].rolling(window).sum()
 
         impulse_idx = data_2h['rolling_sum'].idxmax()
-        impulse_start_idx = impulse_idx - window + 1
-        impulse_end_idx = impulse_idx
 
-        wave1_low = data_2h.loc[impulse_start_idx, 'Low']
-        wave1_high = data_2h.loc[impulse_end_idx, 'High']
+        # Confirm index safety
+        if impulse_idx < window:
+            st.warning("Impulse leg too early in the dataset.")
+        else:
+            impulse_start_idx = impulse_idx - window + 1
+            impulse_end_idx = impulse_idx
 
-        fib_382 = wave1_high - (wave1_high - wave1_low) * 0.382
-        fib_618 = wave1_high - (wave1_high - wave1_low) * 0.618
+            wave1_low = data_2h.loc[impulse_start_idx, 'Low']
+            wave1_high = data_2h.loc[impulse_end_idx, 'High']
 
-        current_price_2h = data_2h['Close'].iloc[-1]
-        in_wave_2 = fib_618 <= current_price_2h <= fib_382
-        wave_status = "Likely Wave 2" if in_wave_2 else "Impulse Complete or Waiting"
+            fib_382 = wave1_high - (wave1_high - wave1_low) * 0.382
+            fib_618 = wave1_high - (wave1_high - wave1_low) * 0.618
 
-        st.write(f"**Wave 1 Range**: {round(wave1_low, 2)} → {round(wave1_high, 2)}")
-        st.write(f"**Fib Entry Zone (38.2–61.8%)**: {round(fib_618, 2)} → {round(fib_382, 2)}")
-        st.write(f"**Current 2H Price**: {round(current_price_2h, 2)}")
-        st.write(f"**Wave Label**: {wave_status}")
+            current_price_2h = data_2h['Close'].iloc[-1]
+            in_wave_2 = fib_618 <= current_price_2h <= fib_382
+            wave_status = "Likely Wave 2" if in_wave_2 else "Impulse Complete / Waiting"
+
+            st.write(f"**Wave 1 Range**: {round(wave1_low, 2)} → {round(wave1_high, 2)}")
+            st.write(f"**Fib Entry Zone**: {round(fib_618, 2)} → {round(fib_382, 2)}")
+            st.write(f"**Current 2H Price**: {round(current_price_2h, 2)}")
+            st.write(f"**Wave Label**: {wave_status}")
 
 except Exception as e:
-    st.warning("Wave detection failed. Showing fallback value.")
-
+    st.warning(f"Wave detection failed: {e}")
 # -----------------------
 # Wave Structure Overview (with 2H Auto Result)
 # -----------------------
