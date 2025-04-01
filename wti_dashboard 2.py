@@ -8,7 +8,7 @@ from datetime import datetime
 # -----------------------
 st.set_page_config(page_title="WTI 100-Pip Bullish Signal Dashboard", layout="centered")
 st.title("WTI 100-Pip Bullish Signal Dashboard")
-st.markdown("Directional Bias Checklist – Version 1.9")
+st.markdown("Directional Bias Checklist – Version 2.0")
 
 # -----------------------
 # Get Live WTI Daily Data
@@ -20,7 +20,6 @@ if len(daily_data) < 2:
     st.error("Insufficient daily WTI data. Try again later.")
     st.stop()
 
-# Prepare daily data
 daily_data.reset_index(inplace=True)
 daily_data = daily_data[["Date", "High", "Low"]].dropna().tail(2)
 df = daily_data.copy()
@@ -29,7 +28,7 @@ st.subheader("OHLC Data (Last 2 Days)")
 st.dataframe(df)
 
 # -----------------------
-# Live Price
+# Live WTI Price
 # -----------------------
 live_price = round(yf.Ticker(symbol).info.get("regularMarketPrice", 0), 2)
 st.subheader("Live WTI Price")
@@ -77,3 +76,104 @@ def breakout_structure_score(df, current_price, tolerance=0.20):
         if len(df) < 2:
             return 0, "Data Error", 0, 0
         high = float(df['High'].iloc[-2])
+        low = float(df['Low'].iloc[-2])
+        near_high = abs(current_price - high) <= tolerance
+        near_low = abs(current_price - low) <= tolerance
+        position = "High" if near_high else "Low" if near_low else "None"
+        score = 1 if near_high or near_low else 0
+        return score, position, high, low
+    except Exception as e:
+        return 0, "Error", 0, 0
+
+score3, structure_side, high, low = breakout_structure_score(df, live_price)
+st.subheader("3. Price Near Breakout Structure")
+st.write(f"Yesterday's High: {high} | Low: {low}")
+st.write(f"Near Structure: **{structure_side}**")
+st.write(f"Score: {score3}/1")
+
+# -----------------------
+# 4–6. Bias Conditions (Manual Logic)
+# -----------------------
+st.subheader("4–6. Bias Conditions (Manual Logic)")
+
+condition_4 = "Yes"  # EMA Alignment Bullish
+condition_5 = "No"   # In Fib Zone
+condition_6 = "Yes"  # Bullish Elliott Wave
+
+score4 = 1 if condition_4 == "Yes" else 0
+score5 = 1 if condition_5 == "Yes" else 0
+score6 = 1 if condition_6 == "Yes" else 0
+
+st.write(f"4. EMA Alignment Bullish: **{condition_4}** — Score: {score4}/1")
+st.write(f"5. In 38.2–61.8% Fib Zone: **{condition_5}** — Score: {score5}/1")
+st.write(f"6. Bullish Elliott Wave Likely Forming: **{condition_6}** — Score: {score6}/1")
+
+# -----------------------
+# Total Bias Score
+# -----------------------
+total_score = score1 + score2 + score3 + score4 + score5 + score6
+st.subheader("Total Bias Score")
+st.metric(label="Bias Strength", value=f"{total_score}/6")
+
+if total_score >= 5:
+    st.success("High Bullish Bias – Look for Entry Setup")
+elif total_score >= 3:
+    st.warning("Moderate Bias – Entry May Need Confirmation")
+else:
+    st.error("Low Bias – Avoid Entry or Wait")
+
+# -----------------------
+# 2H Wave Detection (Auto)
+# -----------------------
+st.subheader("2H Wave Detection (Automated)")
+
+wave_status = "Unavailable"  # Default fallback value
+
+try:
+    data_2h = yf.download(tickers=symbol, period="21d", interval="2h", progress=False)
+    data_2h = data_2h[['High', 'Low', 'Close']].dropna().reset_index()
+
+    if len(data_2h) < 7:
+        st.warning("Not enough 2H candles to detect Wave 2.")
+    else:
+        window = 6
+        data_2h['change'] = data_2h['Close'].diff()
+        data_2h['rolling_sum'] = data_2h['change'].rolling(window).sum()
+
+        impulse_idx = data_2h['rolling_sum'].idxmax()
+        impulse_start_idx = impulse_idx - window + 1
+        impulse_end_idx = impulse_idx
+
+        wave1_low = data_2h.loc[impulse_start_idx, 'Low']
+        wave1_high = data_2h.loc[impulse_end_idx, 'High']
+
+        fib_382 = wave1_high - (wave1_high - wave1_low) * 0.382
+        fib_618 = wave1_high - (wave1_high - wave1_low) * 0.618
+
+        current_price_2h = data_2h['Close'].iloc[-1]
+        in_wave_2 = fib_618 <= current_price_2h <= fib_382
+        wave_status = "Likely Wave 2" if in_wave_2 else "Impulse Complete or Waiting"
+
+        st.write(f"**Wave 1 Range**: {round(wave1_low, 2)} → {round(wave1_high, 2)}")
+        st.write(f"**Fib Entry Zone (38.2–61.8%)**: {round(fib_618, 2)} → {round(fib_382, 2)}")
+        st.write(f"**Current 2H Price**: {round(current_price_2h, 2)}")
+        st.write(f"**Wave Label**: {wave_status}")
+
+except Exception as e:
+    st.warning("Wave detection failed. Showing fallback value.")
+
+# -----------------------
+# Wave Structure Overview (with 2H Auto Result)
+# -----------------------
+st.subheader("Wave Structure Overview")
+
+wave_4h = "Wave 3"
+wave_daily = "Wave 1"
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric(label="2H Chart", value=wave_status)
+with col2:
+    st.metric(label="4H Chart", value=wave_4h)
+with col3:
+    st.metric(label="Daily Chart", value=wave_daily)
