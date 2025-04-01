@@ -7,7 +7,7 @@ from datetime import datetime
 # -----------------------
 st.set_page_config(page_title="WTI 100-Pip Bullish Signal Dashboard", layout="centered")
 st.title("WTI 100-Pip Bullish Signal Dashboard")
-st.markdown("Full Bias Checklist – Version 1.1")
+st.markdown("Directional Bias Checklist – Version 1.3")
 
 # -----------------------
 # Sample OHLC Data (Last 2 Days)
@@ -33,7 +33,8 @@ def day_of_week_bias_score():
 
 score1, today = day_of_week_bias_score()
 st.subheader("1. Day-of-Week Bias")
-st.write(f"Today is **{today}** — Score: {score1}/1")
+st.write(f"Today is **{today}**")
+st.write(f"Score: {score1}/1")
 
 # -----------------------
 # 2. Prior Day’s Range
@@ -50,32 +51,30 @@ def prior_day_range_score(df, threshold=0.80):
 
 score2, pd_range = prior_day_range_score(df)
 st.subheader("2. Prior Day’s Range")
-st.write(f"Range: {pd_range} | Score: {score2}/1")
+st.write(f"Range: {pd_range}")
+st.write(f"Score: {score2}/1")
 
 # -----------------------
-# 3–6. Manual Inputs with Tick/X
+# 3–6. Fixed Values (Yes/No)
 # -----------------------
-st.subheader("3–6. Visual Bias Components")
+st.subheader("3–6. Bias Conditions (Fixed)")
 
-col1, col2 = st.columns(2)
+# --- Set your logic or hardcode answers here:
+# You can update these programmatically later
+condition_3 = "Yes"  # Price near breakout
+condition_4 = "Yes"  # EMA alignment bullish
+condition_5 = "No"   # In Fib zone
+condition_6 = "Yes"  # Wave structure bullish
 
-with col1:
-    is_structure = st.checkbox("✅ Price Near Breakout Structure", value=False)
-    score3 = 1 if is_structure else 0
-    st.markdown(f"Score: {score3}/1")
+score3 = 1 if condition_3 == "Yes" else 0
+score4 = 1 if condition_4 == "Yes" else 0
+score5 = 1 if condition_5 == "Yes" else 0
+score6 = 1 if condition_6 == "Yes" else 0
 
-    is_fib = st.checkbox("✅ In 38.2–61.8% Fib Zone", value=False)
-    score5 = 1 if is_fib else 0
-    st.markdown(f"Score: {score5}/1")
-
-with col2:
-    is_ema = st.checkbox("✅ EMA Alignment Bullish (1H/4H/Daily)", value=False)
-    score4 = 1 if is_ema else 0
-    st.markdown(f"Score: {score4}/1")
-
-    is_wave = st.checkbox("✅ Bullish Elliott Wave Likely Forming", value=False)
-    score6 = 1 if is_wave else 0
-    st.markdown(f"Score: {score6}/1")
+st.write(f"3. Price Near Breakout Structure: **{condition_3}** — Score: {score3}/1")
+st.write(f"4. EMA Alignment Bullish: **{condition_4}** — Score: {score4}/1")
+st.write(f"5. In 38.2–61.8% Fib Zone: **{condition_5}** — Score: {score5}/1")
+st.write(f"6. Bullish Elliott Wave Likely Forming: **{condition_6}** — Score: {score6}/1")
 
 # -----------------------
 # Total Bias Score
