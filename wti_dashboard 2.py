@@ -8,13 +8,13 @@ from datetime import datetime
 # -----------------------
 st.set_page_config(page_title="WTI 100-Pip Bullish Signal Dashboard", layout="centered")
 st.title("WTI 100-Pip Bullish Signal Dashboard")
-st.markdown("Directional Bias Checklist – Version 2.0")
+st.markdown("Directional Bias Checklist – Version 2.1")
 
 # -----------------------
 # Get Live WTI Daily Data
 # -----------------------
 symbol = "CL=F"
-daily_data = yf.download(tickers=symbol, period="70d", interval="1d", progress=False)
+daily_data = yf.download(tickers=symbol, period="7d", interval="1d", progress=False)
 
 if len(daily_data) < 2:
     st.error("Insufficient daily WTI data. Try again later.")
@@ -60,7 +60,7 @@ def prior_day_range_score(df, threshold=0.80):
         range_pips = abs(high - low)
         score = 1 if range_pips < threshold else 0
         return score, round(range_pips, 2)
-    except Exception as e:
+    except Exception:
         return 0, 0
 
 score2, pd_range = prior_day_range_score(df)
@@ -82,7 +82,7 @@ def breakout_structure_score(df, current_price, tolerance=0.20):
         position = "High" if near_high else "Low" if near_low else "None"
         score = 1 if near_high or near_low else 0
         return score, position, high, low
-    except Exception as e:
+    except Exception:
         return 0, "Error", 0, 0
 
 score3, structure_side, high, low = breakout_structure_score(df, live_price)
@@ -92,7 +92,7 @@ st.write(f"Near Structure: **{structure_side}**")
 st.write(f"Score: {score3}/1")
 
 # -----------------------
-# 4–6. Bias Conditions (Manual Logic)
+# 4–6. Bias Conditions (Manual)
 # -----------------------
 st.subheader("4–6. Bias Conditions (Manual Logic)")
 
@@ -122,6 +122,9 @@ elif total_score >= 3:
 else:
     st.error("Low Bias – Avoid Entry or Wait")
 
+# -----------------------
+# 2H Wave Detection (Debug Mode)
+# -----------------------
 st.subheader("2H Wave Detection (Automated – Debug Mode)")
 
 wave_status = "Unavailable"
@@ -164,10 +167,9 @@ try:
 
 except Exception as e:
     st.warning(f"Wave detection failed: {e}")
-except Exception as e:
-    st.warning(f"Wave detection failed: {e}")
+
 # -----------------------
-# Wave Structure Overview (with 2H Auto Result)
+# Wave Structure Overview
 # -----------------------
 st.subheader("Wave Structure Overview")
 
