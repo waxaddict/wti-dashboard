@@ -8,30 +8,28 @@ from datetime import datetime
 # -----------------------
 st.set_page_config(page_title="WTI 100-Pip Bullish Signal Dashboard", layout="centered")
 st.title("WTI 100-Pip Bullish Signal Dashboard")
-st.markdown("Directional Bias Checklist – Version 1.6 (Live Price Enabled)")
+st.markdown("Directional Bias Checklist – Version 1.7 (Stable with Live WTI Price)")
 
 # -----------------------
-# Get Live WTI Price
+# Get Live WTI Data (Daily, Last 3 Days to ensure 2 valid)
 # -----------------------
-wti_symbol = "CL=F"  # Crude Oil Futures (NYMEX)
-wti_data = yf.download(tickers=wti_symbol, period="2d", interval="1d", progress=False)
+wti_symbol = "CL=F"
+wti_data = yf.download(tickers=wti_symbol, period="3d", interval="1d", progress=False)
 
-if wti_data.empty:
-    st.error("Unable to fetch live WTI data.")
+if len(wti_data) < 2:
+    st.error("Insufficient WTI data. Try again later.")
     st.stop()
 
+# Format DataFrame
 wti_data.reset_index(inplace=True)
-wti_data = wti_data.rename(columns={"High": "High", "Low": "Low"})
-df = wti_data[["Date", "High", "Low"]]
+wti_data = wti_data[["Date", "High", "Low"]].dropna().tail(2)
+df = wti_data.copy()
 
-# -----------------------
-# Display OHLC Data
-# -----------------------
 st.subheader("OHLC Data (Last 2 Days)")
 st.dataframe(df)
 
 # -----------------------
-# Get Latest Price (Live)
+# Get Live WTI Price
 # -----------------------
 live_price = round(yf.Ticker(wti_symbol).info.get("regularMarketPrice", 0), 2)
 st.subheader("Live WTI Price")
@@ -56,8 +54,10 @@ st.write(f"Score: {score1}/1")
 # -----------------------
 def prior_day_range_score(df, threshold=0.80):
     try:
-        high = df['High'].iloc[-2]
-        low = df['Low'].iloc[-2]
+        if len(df) < 2:
+            return 0, 0
+        high = float(df['High'].iloc[-2])
+        low = float(df['Low'].iloc[-2])
         range_pips = abs(high - low)
         score = 1 if range_pips < threshold else 0
         return score, round(range_pips, 2)
@@ -74,13 +74,14 @@ st.write(f"Score: {score2}/1")
 # -----------------------
 def breakout_structure_score(df, current_price, tolerance=0.20):
     try:
-        high = df['High'].iloc[-2]
-        low = df['Low'].iloc[-2]
+        if len(df) < 2:
+            return 0, "Data Error", 0, 0
+        high = float(df['High'].iloc[-2])
+        low = float(df['Low'].iloc[-2])
         near_high = abs(current_price - high) <= tolerance
         near_low = abs(current_price - low) <= tolerance
-        near_structure = near_high or near_low
-        score = 1 if near_structure else 0
         position = "High" if near_high else "Low" if near_low else "None"
+        score = 1 if near_high or near_low else 0
         return score, position, high, low
     except:
         return 0, "Error", 0, 0
@@ -92,10 +93,11 @@ st.write(f"Near Structure: **{structure_side}**")
 st.write(f"Score: {score3}/1")
 
 # -----------------------
-# 4–6. Bias Conditions (Manual Logic)
+# 4–6. Bias Conditions (Defined by You)
 # -----------------------
-st.subheader("4–6. Bias Conditions (Defined by Logic or Manual Entry)")
+st.subheader("4–6. Bias Conditions (Manual Logic)")
 
+# Update these values manually or programmatically later
 condition_4 = "Yes"  # EMA Alignment Bullish
 condition_5 = "No"   # In Fib Zone
 condition_6 = "Yes"  # Bullish Elliott Wave
@@ -123,7 +125,7 @@ else:
     st.error("Low Bias – Avoid Entry or Wait")
 
 # -----------------------
-# Wave Structure Overview (Manual)
+# Wave Structure Overview
 # -----------------------
 st.subheader("Wave Structure Overview")
 
