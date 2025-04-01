@@ -8,7 +8,7 @@ from datetime import datetime
 # -----------------------
 st.set_page_config(page_title="WTI 100-Pip Bullish Signal Dashboard", layout="centered")
 st.title("WTI 100-Pip Bullish Signal Dashboard")
-st.markdown("Directional Bias Checklist – 4H Version")
+st.markdown("Directional Bias Checklist – 4H Version (Final Fix)")
 
 # -----------------------
 # Get Live WTI Daily Data
@@ -151,19 +151,16 @@ try:
             impulse_end_idx = impulse_idx
             st.write(f"Impulse Leg: {impulse_start_idx} to {impulse_end_idx}")
 
-            wave1_low = data_4h.loc[impulse_start_idx, 'Low']
-            wave1_high = data_4h.loc[impulse_end_idx, 'High']
+            wave1_low = float(data_4h.loc[impulse_start_idx, 'Low'])
+            wave1_high = float(data_4h.loc[impulse_end_idx, 'High'])
 
             fib_382 = wave1_high - (wave1_high - wave1_low) * 0.382
             fib_618 = wave1_high - (wave1_high - wave1_low) * 0.618
 
-            current_price_4h = float(data_4h['Close'].iloc[-1:].values[0])
+            current_price_4h = float(data_4h['Close'].iloc[-1])
             st.write(f"Fib Zone: {round(fib_618, 2)} to {round(fib_382, 2)}")
-            st.write(f"Type of current_price_4h: {type(current_price_4h)}")
+            st.write(f"Current Price: {round(current_price_4h, 2)}")
 
-st.write(f"Type of current_price_4h: {type(current_price_4h)}")
-
-            
             in_wave_2 = (current_price_4h >= fib_618) and (current_price_4h <= fib_382)
             wave_status_4h = "Likely Wave 2" if in_wave_2 else "Impulse Complete / Waiting"
             st.write(f"Wave Status: {wave_status_4h}")
