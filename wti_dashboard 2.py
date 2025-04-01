@@ -81,7 +81,6 @@ except Exception as e:
 st.subheader("WTI Checklist (Coming Soon)")
 
 st.markdown("""
-- [ ] Day-of-week bias  
 - [ ] Prior day’s range  
 - [ ] Fib retracement zone  
 - [ ] EMA alignment  
