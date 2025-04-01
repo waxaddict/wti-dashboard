@@ -10,7 +10,7 @@ window = 6       # # of 2H candles to define an impulse leg (~12 hours)
 # -----------------------
 # DOWNLOAD 2H DATA
 # -----------------------
-data = yf.download(tickers=symbol, period="14d", interval="2h", progress=False)
+data = yf.download(tickers=symbol, period="30d", interval="2h", progress=False)
 
 # -----------------------
 # CLEAN DATA
