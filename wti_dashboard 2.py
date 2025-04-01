@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import yfinance as yf
 from datetime import datetime
 
 # -----------------------
@@ -7,27 +8,34 @@ from datetime import datetime
 # -----------------------
 st.set_page_config(page_title="WTI 100-Pip Bullish Signal Dashboard", layout="centered")
 st.title("WTI 100-Pip Bullish Signal Dashboard")
-st.markdown("Directional Bias Checklist – Version 1.5")
+st.markdown("Directional Bias Checklist – Version 1.6 (Live Price Enabled)")
 
 # -----------------------
-# Sample OHLC Data (Last 2 Days)
+# Get Live WTI Price
 # -----------------------
-st.subheader("Sample OHLC Data (Last 2 Days)")
+wti_symbol = "CL=F"  # Crude Oil Futures (NYMEX)
+wti_data = yf.download(tickers=wti_symbol, period="2d", interval="1d", progress=False)
 
-data = {
-    "Date": pd.date_range(end=datetime.today(), periods=2),
-    "High": [70.30, 71.60],
-    "Low": [69.80, 70.90],
-}
-df = pd.DataFrame(data)
+if wti_data.empty:
+    st.error("Unable to fetch live WTI data.")
+    st.stop()
+
+wti_data.reset_index(inplace=True)
+wti_data = wti_data.rename(columns={"High": "High", "Low": "Low"})
+df = wti_data[["Date", "High", "Low"]]
+
+# -----------------------
+# Display OHLC Data
+# -----------------------
+st.subheader("OHLC Data (Last 2 Days)")
 st.dataframe(df)
 
 # -----------------------
-# Current Price (Manually Set or Replace with Live Feed)
+# Get Latest Price (Live)
 # -----------------------
-current_price = 71.40
-st.subheader("Current Price")
-st.write(f"**{current_price}**")
+live_price = round(yf.Ticker(wti_symbol).info.get("regularMarketPrice", 0), 2)
+st.subheader("Live WTI Price")
+st.write(f"**{live_price} USD**")
 
 # -----------------------
 # 1. Day-of-Week Bias
@@ -62,7 +70,7 @@ st.write(f"Range: {pd_range}")
 st.write(f"Score: {score2}/1")
 
 # -----------------------
-# 3. Breakout Structure Score (Automated)
+# 3. Breakout Structure Score
 # -----------------------
 def breakout_structure_score(df, current_price, tolerance=0.20):
     try:
@@ -77,7 +85,7 @@ def breakout_structure_score(df, current_price, tolerance=0.20):
     except:
         return 0, "Error", 0, 0
 
-score3, structure_side, high, low = breakout_structure_score(df, current_price)
+score3, structure_side, high, low = breakout_structure_score(df, live_price)
 st.subheader("3. Price Near Breakout Structure")
 st.write(f"Yesterday's High: {high} | Low: {low}")
 st.write(f"Near Structure: **{structure_side}**")
@@ -115,9 +123,23 @@ else:
     st.error("Low Bias – Avoid Entry or Wait")
 
 # -----------------------
-# Wave Structure Overview (Manual Tags)
+# Wave Structure Overview (Manual)
 # -----------------------
 st.subheader("Wave Structure Overview")
 
-st.markdown(""".
-Multi-timeframe view of where WTI
+st.markdown("""
+Multi-timeframe view of where WTI may sit within Elliott Wave structure.  
+These can be adjusted based on your interpretation of chart structure.
+""")
+
+wave_2h = "Wave 4"
+wave_4h = "Wave 3"
+wave_daily = "Wave 1"
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric(label="2H Chart", value=wave_2h)
+with col2:
+    st.metric(label="4H Chart", value=wave_4h)
+with col3:
+    st.metric(label="Daily Chart", value=wave_daily)
