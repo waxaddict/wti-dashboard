@@ -41,10 +41,31 @@ def candle_momentum_score(df, window=10, multiplier=1.5):
 
     return score, current_body, avg_body, status
 
+def day_of_week_bias_score():
+    """
+    Scores 1 if today is Tuesday, Wednesday, or Thursday.
+    """
+    today = datetime.today().strftime('%A')
+    favorable_days = ['Tuesday', 'Wednesday', 'Thursday']
+    score = 1 if today in favorable_days else 0
+    return score, today
+
 # -----------------------
 # Output: Candle Momentum Spike
 # -----------------------
 st.subheader("Candle Momentum Spike")
+
+# -----------------------
+# Day-of-Week Bias Section
+# -----------------------
+st.subheader("Day-of-Week Bias")
+
+day_score, today = day_of_week_bias_score()
+status = "Favorable" if day_score == 1 else "Unfavorable"
+
+st.metric(label="Today", value=today)
+st.write(f"Bias Status: {status}")
+st.write(f"Score: {day_score}/1")
 
 try:
     score, current_body, avg_body, status = candle_momentum_score(df)
