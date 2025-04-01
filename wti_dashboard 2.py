@@ -130,7 +130,7 @@ st.subheader("2H Wave Detection (Automated – Debug Mode)")
 wave_status = "Unavailable"
 
 try:
-    data_2h = yf.download(tickers=symbol, period="21d", interval="2h", progress=False)
+    data_2h = yf.download(tickers=symbol, period="60d", interval="4h", progress=False)
     data_2h = data_2h[['High', 'Low', 'Close']].dropna().reset_index()
     st.write(f"Fetched {len(data_2h)} candles from 2H feed.")
 
