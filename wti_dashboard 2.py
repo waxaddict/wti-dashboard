@@ -7,7 +7,7 @@ from datetime import datetime
 # -----------------------
 st.set_page_config(page_title="WTI 100-Pip Bullish Signal Dashboard", layout="centered")
 st.title("WTI 100-Pip Bullish Signal Dashboard")
-st.markdown("Directional Bias Checklist – Version 1.4")
+st.markdown("Directional Bias Checklist – Version 1.5")
 
 # -----------------------
 # Sample OHLC Data (Last 2 Days)
@@ -23,7 +23,7 @@ df = pd.DataFrame(data)
 st.dataframe(df)
 
 # -----------------------
-# Current Price (can be replaced with live input later)
+# Current Price (Manually Set or Replace with Live Feed)
 # -----------------------
 current_price = 71.40
 st.subheader("Current Price")
@@ -68,10 +68,8 @@ def breakout_structure_score(df, current_price, tolerance=0.20):
     try:
         high = df['High'].iloc[-2]
         low = df['Low'].iloc[-2]
-
         near_high = abs(current_price - high) <= tolerance
         near_low = abs(current_price - low) <= tolerance
-
         near_structure = near_high or near_low
         score = 1 if near_structure else 0
         position = "High" if near_high else "Low" if near_low else "None"
@@ -86,14 +84,13 @@ st.write(f"Near Structure: **{structure_side}**")
 st.write(f"Score: {score3}/1")
 
 # -----------------------
-# 4–6. Fixed YES/NO Based on Your Backend Logic
+# 4–6. Bias Conditions (Manual Logic)
 # -----------------------
-st.subheader("4–6. Bias Conditions (Fixed Values)")
+st.subheader("4–6. Bias Conditions (Defined by Logic or Manual Entry)")
 
-# --- Update these manually or via logic later
 condition_4 = "Yes"  # EMA Alignment Bullish
 condition_5 = "No"   # In Fib Zone
-condition_6 = "Yes"  # Bullish Wave Forming
+condition_6 = "Yes"  # Bullish Elliott Wave
 
 score4 = 1 if condition_4 == "Yes" else 0
 score5 = 1 if condition_5 == "Yes" else 0
@@ -110,12 +107,17 @@ total_score = score1 + score2 + score3 + score4 + score5 + score6
 st.subheader("Total Bias Score")
 st.metric(label="Bias Strength", value=f"{total_score}/6")
 
-# -----------------------
-# Interpretation
-# -----------------------
 if total_score >= 5:
     st.success("High Bullish Bias – Look for Entry Setup")
 elif total_score >= 3:
     st.warning("Moderate Bias – Entry May Need Confirmation")
 else:
     st.error("Low Bias – Avoid Entry or Wait")
+
+# -----------------------
+# Wave Structure Overview (Manual Tags)
+# -----------------------
+st.subheader("Wave Structure Overview")
+
+st.markdown("""
+Multi-timeframe view of where WTI
