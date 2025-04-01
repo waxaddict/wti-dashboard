@@ -157,10 +157,13 @@ try:
             fib_382 = wave1_high - (wave1_high - wave1_low) * 0.382
             fib_618 = wave1_high - (wave1_high - wave1_low) * 0.618
 
-            current_price_4h = float(data_4h['Close'].iloc[-1])
+            current_price_4h = float(data_4h['Close'].iloc[-1:].values[0])
             st.write(f"Fib Zone: {round(fib_618, 2)} to {round(fib_382, 2)}")
-            st.write(f"Current Price: {round(current_price_4h, 2)}")
+            st.write(f"Type of current_price_4h: {type(current_price_4h)}")
 
+
+
+            
             in_wave_2 = (current_price_4h >= fib_618) and (current_price_4h <= fib_382)
             wave_status_4h = "Likely Wave 2" if in_wave_2 else "Impulse Complete / Waiting"
             st.write(f"Wave Status: {wave_status_4h}")
