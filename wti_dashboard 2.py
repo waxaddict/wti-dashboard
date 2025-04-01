@@ -14,7 +14,7 @@ st.markdown("Directional Bias Checklist – Version 1.8")
 # Get Live WTI Data (1D)
 # -----------------------
 symbol = "CL=F"
-daily_data = yf.download(tickers=symbol, period="3d", interval="1d", progress=False)
+daily_data = yf.download(tickers=symbol, period="7d", interval="1d", progress=False)
 
 if len(daily_data) < 2:
     st.error("Insufficient daily WTI data. Try again later.")
