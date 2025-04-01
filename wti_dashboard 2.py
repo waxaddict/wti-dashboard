@@ -119,5 +119,5 @@ else:
 # -----------------------
 st.subheader("Wave Structure Overview")
 
-st.markdown("""
+st.markdown(""".
 Multi-timeframe view of where WTI
