@@ -61,6 +61,8 @@ def prior_day_range_score(df, threshold=0.80):
         range_pips = abs(high - low)
         score = 1 if range_pips < threshold else 0
         return score, round(range_pips, 2)
+    except Exception as e:
+        return 0, 0
     except:
         return 0, 0
 
