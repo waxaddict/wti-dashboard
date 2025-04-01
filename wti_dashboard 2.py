@@ -7,83 +7,91 @@ from datetime import datetime
 # Page Config
 # -----------------------
 st.set_page_config(page_title="WTI 100-Pip Bullish Signal Dashboard", layout="centered")
-
 st.title("WTI 100-Pip Bullish Signal Dashboard")
-st.markdown("Version 1.0 – Includes Candle Momentum Spike Metric")
+st.markdown("Full Bias Checklist – Version 1.0")
 
 # -----------------------
-# Sample OHLC Data (Replace with API or upload later)
+# Sample OHLC Data (Replace with live or uploaded data)
 # -----------------------
-st.subheader("Sample OHLC Data (Last 11 Days)")
+st.subheader("Sample OHLC Data (Last 2 Days)")
 
 data = {
-    "Date": pd.date_range(end=datetime.today(), periods=11),
-    "Open": [68.10, 68.95, 69.00, 69.70, 70.10, 69.90, 70.30, 70.80, 71.10, 70.90, 71.60],
-    "Close": [68.95, 69.00, 69.70, 70.10, 69.90, 70.30, 70.80, 71.10, 70.90, 71.60, 71.40],
+    "Date": pd.date_range(end=datetime.today(), periods=2),
+    "High": [70.30, 71.60],
+    "Low": [69.80, 70.90],
 }
 df = pd.DataFrame(data)
 st.dataframe(df)
 
 # -----------------------
-# Candle Momentum Spike Function
+# 1. Day-of-Week Bias
 # -----------------------
-def candle_momentum_score(df, window=10, multiplier=1.5):
-    """
-    Calculates if the most recent candle shows a momentum spike based on body size.
-    """
-    df['body_size'] = abs(df['Close'] - df['Open'])
-
-    avg_body = df['body_size'].iloc[-(window+1):-1].mean()
-    current_body = df['body_size'].iloc[-1]
-
-    score = 1 if current_body >= multiplier * avg_body else 0
-    status = "Yes" if score == 1 else "No"
-
-    return score, current_body, avg_body, status
-
 def day_of_week_bias_score():
-    """
-    Scores 1 if today is Tuesday, Wednesday, or Thursday.
-    """
     today = datetime.today().strftime('%A')
     favorable_days = ['Tuesday', 'Wednesday', 'Thursday']
     score = 1 if today in favorable_days else 0
     return score, today
 
-# -----------------------
-# Output: Candle Momentum Spike
-# -----------------------
-st.subheader("Candle Momentum Spike")
+score1, today = day_of_week_bias_score()
+st.subheader("1. Day-of-Week Bias")
+st.write(f"Today is **{today}** — Score: {score1}/1")
 
 # -----------------------
-# Day-of-Week Bias Section
+# 2. Prior Day’s Range
 # -----------------------
-st.subheader("Day-of-Week Bias")
+def prior_day_range_score(df, threshold=0.80):
+    try:
+        high = df['High'].iloc[-2]
+        low = df['Low'].iloc[-2]
+        range_pips = abs(high - low)
+        score = 1 if range_pips < threshold else 0
+        return score, round(range_pips, 2)
+    except:
+        return 0, 0
 
-day_score, today = day_of_week_bias_score()
-status = "Favorable" if day_score == 1 else "Unfavorable"
-
-st.metric(label="Today", value=today)
-st.write(f"Bias Status: {status}")
-st.write(f"Score: {day_score}/1")
-
-try:
-    score, current_body, avg_body, status = candle_momentum_score(df)
-    st.metric(label="Momentum Spike Detected", value=status)
-    st.write(f"Current Body: {round(current_body, 2)} | Avg Body (last 10): {round(avg_body, 2)}")
-    st.write(f"Score: {score}/1")
-except Exception as e:
-    st.error(f"Could not calculate momentum spike: {e}")
+score2, pd_range = prior_day_range_score(df)
+st.subheader("2. Prior Day’s Range")
+st.write(f"Range: {pd_range} | Score: {score2}/1")
 
 # -----------------------
-# Future Checklist Area
+# 3. Price Near Breakout Structure (Manual)
 # -----------------------
-st.subheader("WTI Checklist (Coming Soon)")
+score3 = st.radio("3. Price Near Key Structure (Prev High/Low or Breakout)?", ["Yes", "No"]) == "Yes"
+score3 = int(score3)
+st.write(f"Score: {score3}/1")
 
-st.markdown("""
-- [ ] Prior day’s range  
-- [ ] Fib retracement zone  
-- [ ] EMA alignment  
-- [ ] Wave count snapshot  
-- [ ] Volume spike  
-""")
+# -----------------------
+# 4. EMA Trend Alignment (Manual)
+# -----------------------
+score4 = st.radio("4. EMA Alignment Bullish (1H / 4H / Daily)?", ["Yes", "No"]) == "Yes"
+score4 = int(score4)
+st.write(f"Score: {score4}/1")
+
+# -----------------------
+# 5. Fib Retracement Zone (Manual)
+# -----------------------
+score5 = st.radio("5. Is Price in 38.2–61.8% Fib Retracement Zone?", ["Yes", "No"]) == "Yes"
+score5 = int(score5)
+st.write(f"Score: {score5}/1")
+
+# -----------------------
+# 6. Elliott Wave Snapshot (Manual)
+# -----------------------
+score6 = st.radio("6. Is Bullish Wave Structure (Wave 3 or 5) Likely Forming?", ["Yes", "No"]) == "Yes"
+score6 = int(score6)
+st.write(f"Score: {score6}/1")
+
+# -----------------------
+# TOTAL BIAS SCORE
+# -----------------------
+total_score = score1 + score2 + score3 + score4 + score5 + score6
+st.subheader("Total Bias Score")
+st.metric(label="Bias Strength", value=f"{total_score}/6")
+
+# Optional Interpretation
+if total_score >= 5:
+    st.success("High Bullish Bias – Look for Entry Setup")
+elif total_score >= 3:
+    st.warning("Moderate Bias – Entry May Need Confirmation")
+else:
+    st.error("Low Bias – Avoid Entry or Wait")
